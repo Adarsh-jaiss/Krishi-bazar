@@ -1,6 +1,6 @@
 .phony: build run push
 build:
-	@go build bin/app
+	@go build -o bin/app ./
 run:build
 	@./bin/app
 

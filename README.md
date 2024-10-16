@@ -100,6 +100,24 @@ flowchart TD
     end
 ```
 
+JWT DIAGRAM:
+```
+sequenceDiagram
+    participant Client
+    participant JWTMiddleware
+    participant ExtractUserID
+    participant IsFarmer
+    participant RequestHandler
+
+    Client->>JWTMiddleware: Request with JWT
+    JWTMiddleware->>ExtractUserID: Validated token
+    ExtractUserID->>ExtractUserID: Extract user_id
+    ExtractUserID->>IsFarmer: Request with user_id in context
+    IsFarmer->>IsFarmer: Check user_type
+    IsFarmer->>RequestHandler: Request (if user is farmer)
+    RequestHandler->>RequestHandler: Handle request (user_id available)
+```
+
 
 ### Services:
 

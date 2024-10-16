@@ -15,7 +15,7 @@ func CreateUser(db *sql.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var u types.User
 		if err := c.Bind(&u); err != nil {
-			return echo.NewHTTPError(echo.ErrBadRequest.Code, "Invalid user data")
+			return echo.NewHTTPError(echo.ErrBadRequest.Code, fmt.Sprintf("Invalid user data: %v", err))
 		}
 
 		u.CreatedAt = time.Now()
@@ -30,11 +30,12 @@ func CreateUser(db *sql.DB) echo.HandlerFunc {
 }
 
 // NOTE: Currently passing it in parameters, but not sure how will it behvave in app
+// TRY fetching UserID it from context --> Need to see frontend Implementation
 func GetUserProfile(db *sql.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		userID, err := strconv.Atoi(c.Param("id"))
+		userID, err := strconv.Atoi(c.Param("id"))		// using path parameter -> for query use c.query("id")
 		if err != nil {
-			return echo.NewHTTPError(echo.ErrBadRequest.Code, "Invalid user ID")
+			return echo.NewHTTPError(echo.ErrBadRequest.Code, fmt.Sprintf("Invalid user ID: %v", err))
 		}
 
 		res, err := GetUserProfileFromStore(db, userID)
@@ -46,16 +47,17 @@ func GetUserProfile(db *sql.DB) echo.HandlerFunc {
 	}
 }
 
+// TRY fetching UserID it from context --> Need to see frontend Implementation
 func UpdateProfile(db *sql.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		userID, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
-			return echo.NewHTTPError(echo.ErrBadRequest.Code, "Invalid user ID")
+			return echo.NewHTTPError(echo.ErrBadRequest.Code, fmt.Sprintf("Invalid user ID: %v", err))
 		}
 
 		var u types.User
 		if err := c.Bind(&u); err != nil {
-			return echo.NewHTTPError(echo.ErrBadRequest.Code, "Invalid user data")
+			return echo.NewHTTPError(echo.ErrBadRequest.Code, fmt.Sprintf("Invalid user data: %v", err))
 		}
 
 		u.UpdatedAt = time.Now()

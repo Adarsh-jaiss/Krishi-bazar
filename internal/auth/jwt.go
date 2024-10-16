@@ -19,6 +19,19 @@ func GenerateToken(userID int, userType string) (string, error) {
 	return token.SignedString([]byte(os.Getenv("JWT_SECRET")))
 }
 
+func ExtractUserID(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		user := c.Get("user").(*jwt.Token)
+		claims := user.Claims.(jwt.MapClaims)
+		userID := int(claims["user_id"].(float64))
+		
+		// Store user ID in context
+		c.Set("user_id", userID)
+		
+		return next(c)
+	}
+}
+
 func IsAdmin(next echo.HandlerFunc) echo.HandlerFunc {
     return func(c echo.Context) error {
         user := c.Get("user").(*jwt.Token)
@@ -41,6 +54,8 @@ func IsFarmer(next echo.HandlerFunc) echo.HandlerFunc {
 		if userType != "farmer" {
 			return echo.ErrUnauthorized
 		}
+
+
 		return next(c)
 	}
 }

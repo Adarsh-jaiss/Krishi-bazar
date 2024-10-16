@@ -27,8 +27,14 @@ func CreateTable() error {
 	}
 	defer db.Close()
 
-	// createUserTypeEnum := `
-	// CREATE TYPE user_type AS ENUM ('buyer', 'farmer', 'admin');`
+	createUserTypeEnum := `
+	CREATE TYPE user_type AS ENUM ('buyer', 'farmer', 'admin');`
+
+	createOrderStatusEnum := `DO $$ BEGIN
+            CREATE TYPE order_status AS ENUM ('Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Refunded');
+        EXCEPTION
+            WHEN duplicate_object THEN null;
+        END $$;`
 
 	createUsersTable := `
 	CREATE TABLE IF NOT EXISTS users (
@@ -76,7 +82,7 @@ func CreateTable() error {
 	CREATE TABLE IF NOT EXISTS auth (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id),
-    mobile_number VARCHAR(15) NOT NULL,
+    phone_number VARCHAR(15) NOT NULL,
     verification_code VARCHAR(10),
     is_verified BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -84,37 +90,92 @@ func CreateTable() error {
     last_login_at TIMESTAMP
 );`
 
-	// _, err = db.Exec(createUserTypeEnum)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to create user type enum: %v", err)
-	// }
+	createProductsTable := `
+	CREATE TABLE IF NOT EXISTS products (
+	id SERIAL PRIMARY KEY,
+	farmer_id INT NOT NULL REFERENCES users(id),
+	name VARCHAR(255) NOT NULL,
+	type VARCHAR(100) NOT NULL,
+	img  TEXT NOT NULL,
+	quantity INT NOT NULL,
+	rate_per_kg DECIMAL(10, 2) NOT NULL,
+	jari_size INT,
+	expected_delivery DATE,
+	farmers_phone_number VARCHAR(15) NOT NULL,
+	is_available BOOLEAN DEFAULT TRUE,
+	is_verified_by_admin BOOLEAN DEFAULT FALSE,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);`
 
-	_, err = db.Exec(createUsersTable)
-	if err != nil {
-		return fmt.Errorf("failed to create users table: %v", err)
+	createOrdersTable := `
+	CREATE TABLE IF NOT EXISTS orders (
+	id SERIAL PRIMARY KEY,
+	buyer_id INT NOT NULL REFERENCES users(id),
+	product_id INT NOT NULL REFERENCES products(id),
+	buyers_phone_number VARCHAR(15) NOT NULL,
+	quantity INT NOT NULL,
+	total_price DECIMAL(10, 2) NOT NULL,
+	status order_status NOT NULL,
+	mode_of_delivery VARCHAR(100),
+	expected_delivery_date DATE,
+	delivery_address TEXT NOT NULL,
+	delivery_city VARCHAR(100) NOT NULL,
+	delivery_address_zip VARCHAR(10) NOT NULL,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);`
 
+	indexes := `
+	CREATE INDEX idx_farmer_id ON products(farmer_id);
+	CREATE INDEX idx_buyer_id ON orders(buyer_id);
+	CREATE INDEX idx_product_id ON orders(product_id);
+	`
+	enums := []string{createUserTypeEnum, createOrderStatusEnum}
+	for i := 0; i < len(enums); i++ {
+		_, err = db.Exec(enums[i])
+		if err != nil {
+			return fmt.Errorf("failed to create user type enum: %v", err)
+		}
 	}
 
-	_, err = db.Exec(createFarmersTable)
-	if err != nil {
-		return fmt.Errorf("failed to create farmers table: %v", err)
+	tables := []string{createUsersTable, createFarmersTable, createBuyersTable, createAdminsTable, createAuthTable, createProductsTable, createOrdersTable}
+	for i := 0; i < len(tables); i++ {
+		_, err := db.Exec(tables[i])
+		if err != nil {
+			return fmt.Errorf("error creating %v: %v", tables[i], err)
+		}
 	}
 
-	_, err = db.Exec(createBuyersTable)
+	_, err = db.Exec(indexes)
 	if err != nil {
-		return fmt.Errorf("failed to create buyers table: %v", err)
+		return fmt.Errorf("failed to created indexes:%v", err)
 	}
 
-	_, err = db.Exec(createAdminsTable)
+	// Create trigger for updating 'updated_at' automatically
+	_, err = db.Exec(`
+        CREATE OR REPLACE FUNCTION update_modified_column()
+        RETURNS TRIGGER AS $$
+        BEGIN
+            NEW.updated_at = now();
+            RETURN NEW;
+        END;
+        $$ language 'plpgsql';
+
+        CREATE TRIGGER update_product_modtime
+            BEFORE UPDATE ON products
+            FOR EACH ROW
+            EXECUTE FUNCTION update_modified_column();
+
+        CREATE TRIGGER update_order_modtime
+            BEFORE UPDATE ON orders
+            FOR EACH ROW
+            EXECUTE FUNCTION update_modified_column();
+    `)
 	if err != nil {
-		return fmt.Errorf("failed to create admins table: %v", err)
+		return fmt.Errorf("failed to create update trigger: %v", err)
 	}
 
-	_, err = db.Exec(createAuthTable)
-	if err != nil {
-		return fmt.Errorf("failed to create auth table: %v", err)
-	}
-
-	fmt.Println("Tables created successfully!")
+	fmt.Println("Tables,enums,indexes and triggers created successfully!")
 	return nil
 }

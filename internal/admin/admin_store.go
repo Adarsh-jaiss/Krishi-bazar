@@ -34,3 +34,19 @@ func ApproveUserStore(db *sql.DB, v types.Approve) error {
 
     return nil
 }
+
+func ApproveProductInStore(db *sql.DB, v types.ApproveProduct) error {
+    q := `
+    UPDATE products
+    SET is_approved = $1, updated_at = NOW()
+    WHERE product_id = $2;
+    `
+
+    // Execute the products update query
+    _, err := db.Exec(q, v.IsVerified, v.ProductID)
+    if err != nil {
+        return fmt.Errorf("error updating is_approved field in products: %v", err)
+    }
+
+    return nil
+}

@@ -92,20 +92,20 @@ func CreateTable() error {
 
 	createProductsTable := `
 	CREATE TABLE IF NOT EXISTS products (
-	id SERIAL PRIMARY KEY,
-	farmer_id INT NOT NULL REFERENCES users(id),
-	name VARCHAR(255) NOT NULL,
-	type VARCHAR(100) NOT NULL,
-	img  TEXT NOT NULL,
-	quantity INT NOT NULL,
-	rate_per_kg DECIMAL(10, 2) NOT NULL,
-	jari_size INT,
-	expected_delivery DATE,
-	farmers_phone_number VARCHAR(15) NOT NULL,
-	is_available BOOLEAN DEFAULT TRUE,
-	is_verified_by_admin BOOLEAN DEFAULT FALSE,
-	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id SERIAL PRIMARY KEY,
+    farmer_id INT NOT NULL REFERENCES users(id),
+    name VARCHAR(255) NOT NULL,
+    type VARCHAR(100) NOT NULL,
+    img TEXT NOT NULL,
+    quantity_in_kg INT NOT NULL,
+    rate_per_kg DECIMAL(10, 2) NOT NULL,
+    jari_size VARCHAR(50),
+    expected_delivery DATE,
+    farmers_phone_number VARCHAR(15) NOT NULL,
+    is_available BOOLEAN DEFAULT TRUE,
+    is_verified_by_admin BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );`
 
 	createOrdersTable := `
@@ -114,7 +114,7 @@ func CreateTable() error {
 	buyer_id INT NOT NULL REFERENCES users(id),
 	product_id INT NOT NULL REFERENCES products(id),
 	buyers_phone_number VARCHAR(15) NOT NULL,
-	quantity INT NOT NULL,
+	quantity_in_kg INT NOT NULL,
 	total_price DECIMAL(10, 2) NOT NULL,
 	status order_status NOT NULL,
 	mode_of_delivery VARCHAR(100),
@@ -126,17 +126,17 @@ func CreateTable() error {
 	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );`
 
-	indexes := `
-	CREATE INDEX idx_farmer_id ON products(farmer_id);
-	CREATE INDEX idx_buyer_id ON orders(buyer_id);
-	CREATE INDEX idx_product_id ON orders(product_id);
-	`
+	// indexes := `
+	// CREATE INDEX idx_farmer_id ON products(farmer_id);
+	// CREATE INDEX idx_buyer_id ON orders(buyer_id);
+	// CREATE INDEX idx_product_id ON orders(product_id);
+	// `
 	enums := []string{createUserTypeEnum, createOrderStatusEnum}
 	for i := 0; i < len(enums); i++ {
-		_, err = db.Exec(enums[i])
-		if err != nil {
-			return fmt.Errorf("failed to create user type enum: %v", err)
-		}
+		// _, err = db.Exec(enums[i])
+		// if err != nil {
+		// 	return fmt.Errorf("failed to create user type enum: %v", err)
+		// }
 	}
 
 	tables := []string{createUsersTable, createFarmersTable, createBuyersTable, createAdminsTable, createAuthTable, createProductsTable, createOrdersTable}
@@ -147,31 +147,31 @@ func CreateTable() error {
 		}
 	}
 
-	_, err = db.Exec(indexes)
-	if err != nil {
-		return fmt.Errorf("failed to created indexes:%v", err)
-	}
+	// _, err = db.Exec(indexes)
+	// if err != nil {
+	// 	return fmt.Errorf("failed to created indexes:%v", err)
+	// }
 
 	// Create trigger for updating 'updated_at' automatically
-	_, err = db.Exec(`
-        CREATE OR REPLACE FUNCTION update_modified_column()
-        RETURNS TRIGGER AS $$
-        BEGIN
-            NEW.updated_at = now();
-            RETURN NEW;
-        END;
-        $$ language 'plpgsql';
+	// _, err = db.Exec(`
+	//     CREATE OR REPLACE FUNCTION update_modified_column()
+	//     RETURNS TRIGGER AS $$
+	//     BEGIN
+	//         NEW.updated_at = now();
+	//         RETURN NEW;
+	//     END;
+	//     $$ language 'plpgsql';
 
-        CREATE TRIGGER update_product_modtime
-            BEFORE UPDATE ON products
-            FOR EACH ROW
-            EXECUTE FUNCTION update_modified_column();
+	//     CREATE TRIGGER update_product_modtime
+	//         BEFORE UPDATE ON products
+	//         FOR EACH ROW
+	//         EXECUTE FUNCTION update_modified_column();
 
-        CREATE TRIGGER update_order_modtime
-            BEFORE UPDATE ON orders
-            FOR EACH ROW
-            EXECUTE FUNCTION update_modified_column();
-    `)
+	//     CREATE TRIGGER update_order_modtime
+	//         BEFORE UPDATE ON orders
+	//         FOR EACH ROW
+	//         EXECUTE FUNCTION update_modified_column();
+	// `)
 	if err != nil {
 		return fmt.Errorf("failed to create update trigger: %v", err)
 	}

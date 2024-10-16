@@ -28,16 +28,14 @@ func GetUserProfileFromStore(db *sql.DB, userID int) (types.User, error) {
     var userType string
     err := db.QueryRow("SELECT user_type FROM users WHERE id = $1", userID).Scan(&userType)
     if err != nil {
-        return types.User{}, fmt.Errorf("error finding user: %v", err)
+        return types.User{}, fmt.Errorf("error finding user type: %v", err)
     }
 
     // Base query for user information
-    query := `
+    baseQuery := `
     SELECT
         u.id, u.first_name, u.last_name, u.email, u.phone_number, u.aadhar_number,
-        u.user_type, u.img, u.created_at, u.updated_at, u.last_login_at
-    FROM users u
-    WHERE u.id = $1`
+        u.user_type, u.img, u.created_at, u.updated_at, u.last_login_at`
 
     // Additional fields and join based on user type
     var additionalFields string
@@ -70,7 +68,7 @@ func GetUserProfileFromStore(db *sql.DB, userID int) (types.User, error) {
     }
 
     // Combine the query parts
-    fullQuery := query + additionalFields + joinClause
+    fullQuery := baseQuery + additionalFields + " FROM users u" + joinClause + " WHERE u.id = $1"
 
     // Execute the query
     err = db.QueryRow(fullQuery, userID).Scan(scanArgs...)

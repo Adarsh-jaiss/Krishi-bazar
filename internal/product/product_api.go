@@ -2,6 +2,7 @@ package product
 
 import (
 	"database/sql"
+	"net/http"
 	"strconv"
 
 	"fmt"
@@ -39,7 +40,7 @@ func ListAllProducts(db *sql.DB) echo.HandlerFunc {
 
 func ListJariProducts(db *sql.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		res, err := GetAllMushroomAndJariProductsFromStore(db, "jari")
+		res, err := GetAllMushroomAndJariProductsFromStore(db,"jari")
 		if err != nil {
 			return echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Sprintf("failed to fetch jari products from store: %v", err))
 		}
@@ -49,9 +50,9 @@ func ListJariProducts(db *sql.DB) echo.HandlerFunc {
 
 func ListMushroomProducts(db *sql.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		res, err := GetAllMushroomAndJariProductsFromStore(db, "mushroom")
+		res, err := GetAllMushroomAndJariProductsFromStore(db,"mushroom")
 		if err != nil {
-			return echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Sprintf("failed to fetch jari products from store: %v", err))
+			return echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Sprintf("failed to fetch mushroom products from store: %v", err))
 		}
 		return c.JSON(200, res)
 	}
@@ -105,10 +106,10 @@ func CreateProduct(db *sql.DB) echo.HandlerFunc {
 		if err := c.Bind(&p); err != nil {
 			return echo.NewHTTPError(echo.ErrBadRequest.Code, fmt.Sprintf("error parsing create request :%v", err))
 		}
-		if err := CreateProductInStore(db, p); err != nil {
+		if err := CreateProductInStore(db, &p); err != nil {
 			return echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Sprintf("error creating new product:%v", err))
 		}
-		return c.JSON(200, "product created successfully!")
+		return c.JSON(http.StatusCreated, map[string]string{"message": "product created successfully!"})
 	}
 }
 
@@ -138,6 +139,6 @@ func DeleteProduct(db *sql.DB) echo.HandlerFunc {
 			return echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Sprintf("error deleting product :%v", err))
 		}
 
-		return c.JSON(200, "Product Deleted successfully")
+		return c.JSON(http.StatusCreated, map[string]string{"message": "product deleted successfully!"})
 	}
 }

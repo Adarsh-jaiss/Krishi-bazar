@@ -14,9 +14,9 @@ type Approve struct {
 
 type LoginRequest struct {
 	PhoneNumber      string `json:"phone_number"`
-	AadharNumber     string `json:"aadhar_number"`
-	VerificationCode string `json:"verification_code"`
-	IsVerified       string `json:"is_verified"`
+	AadharNumber     string `json:"aadhar_number,omitempty"`
+	VerificationCode string `json:"verification_code,omitempty"`
+	IsVerified       string `json:"is_verified,omitempty"`
 }
 
 // TODO:Add User's photo -> DONE

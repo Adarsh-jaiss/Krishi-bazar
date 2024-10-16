@@ -13,6 +13,7 @@ import (
 )
 
 // Save the user data in the temporary store at client side
+// Add resend OTP FUNCTIONALITY --> From frontend ->> HIT THis Api after 2 min
 func HandleSignUp() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var u types.User
@@ -56,7 +57,7 @@ func HandleCompleteSignup(db *sql.DB) echo.HandlerFunc {
 		}
 
 		// Create auth record
-		if err := CreateAuthRecord(db, userID, req.User.PhoneNumber); err != nil {
+		if err := CreateAuthRecord(db, userID, req.VerificationCode,req.User.PhoneNumber); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Error creating auth record: %v", err))
 		}
 
@@ -67,7 +68,7 @@ func HandleCompleteSignup(db *sql.DB) echo.HandlerFunc {
 
 		// Get user type
 		userType := "buyer"
-		if !req.User.IsFarmer {
+		if req.User.IsFarmer {
 			userType = "farmer"
 		}
 
@@ -80,7 +81,7 @@ func HandleCompleteSignup(db *sql.DB) echo.HandlerFunc {
 		// return c.JSON(http.StatusCreated, map[string]string{"message": "User created successfully!"})
 		return c.JSON(http.StatusCreated, map[string]interface{}{
 			"message": "User created successfully!",
-			"user":    req.User.ID,
+			"user":    userID,
 			"token":   token,
 		})
 	}
@@ -88,13 +89,13 @@ func HandleCompleteSignup(db *sql.DB) echo.HandlerFunc {
 
 func HandleLogin() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var req string
+		var req types.LoginRequest
 		if err := c.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "Invalid request data")
 		}
 
 		// Call Authenticate function to send verification code
-		if err := Authenticate(req); err != nil {
+		if err := Authenticate(req.PhoneNumber); err != nil {
 			return echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Sprintf("error sending verification code: %v", err))
 		}
 
@@ -131,13 +132,8 @@ func HandleCompleteLogin(db *sql.DB) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Error updating last login: %v", err))
 		}
 
-		userType := "buyer"
-		if u.IsFarmer {
-			userType = "farmer"
-		}
-
 		// Generate JWT token
-		token, err := GenerateToken(userID, userType)
+		token, err := GenerateToken(userID, u.UserType)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Error generating token: %v", err))
 		}

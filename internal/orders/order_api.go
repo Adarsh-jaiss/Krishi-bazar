@@ -22,6 +22,10 @@ func CreateOrder(db *sql.DB) echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid farmer ID"})
 		}
 
+		if err := c.Bind(&o); err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "unable to parse req body"})
+		}
+
 		o.ProductID = ProductID
 		o.BuyerID = c.Get("user_id").(int) // used context to fetch userID
 
@@ -35,27 +39,22 @@ func CreateOrder(db *sql.DB) echo.HandlerFunc {
 
 func GetOrders(db *sql.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		userID := c.Get("user_id").(int)
+		userID, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			return echo.NewHTTPError(echo.ErrBadRequest.Code, fmt.Sprintf("error parsing user id:%v", err))
+		}
 
 		u, err := users.GetUserProfileFromStore(db, userID)
 		if err != nil {
 			return echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Sprintf("error fetching user profile:%v", err))
 		}
 
-		if u.UserType == "farmer" {
-			orderSummaries, err := GetFarmerOrdersFromStore(db, userID)
-			if err != nil {
-				return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch orders"})
-			}
-			return c.JSON(http.StatusOK, orderSummaries)
-		} else {
-			orderSummaries, err := GetBuyerOrdersFromStore(db, userID)
-			if err != nil {
-				return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch orders"})
-			}
-
-			return c.JSON(http.StatusOK, orderSummaries)
+		orderSummaries, err := GetOrdersBasedOnUser(db, userID, u.UserType)
+		if err != nil {
+			return echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Sprintf("failed to fetch orders: %v", err))
 		}
+
+		return c.JSON(http.StatusOK, orderSummaries)
 	}
 }
 
@@ -68,7 +67,7 @@ func GetOrdersByID(db *sql.DB) echo.HandlerFunc {
 
 		res, err := GetOrderFromStore(db, orderID)
 		if err != nil {
-			echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Sprintf("error fetching order from the store", err))
+			echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Sprintf("error fetching order from the store :%v", err))
 		}
 
 		return c.JSON(200, res)
@@ -76,22 +75,26 @@ func GetOrdersByID(db *sql.DB) echo.HandlerFunc {
 	}
 }
 
+type UpdateOrderStatuss struct {
+	Status string `json:"status"`
+}
+
 func UpdateOrderStatus(db *sql.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-        orderID, err := strconv.Atoi(c.Param("id"))
+		orderID, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			return echo.NewHTTPError(echo.ErrBadRequest.Code, fmt.Sprintf("error parsing order id:%v", err))
 		}
-		var orderStatus string
-		if err := c.Bind(&orderStatus); err != nil {
+		var o UpdateOrderStatuss
+		if err := c.Bind(&o); err != nil {
 			return echo.NewHTTPError(echo.ErrBadRequest.Code, fmt.Sprintf("error parsing update request:%v", err))
 		}
 
-        if err := UpdateOrderStatusInStore(db,orderID, orderStatus); err != nil {
+		if err := UpdateOrderStatusInStore(db, orderID, o.Status); err != nil {
 			return echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Sprintf("error updating order status:%v", err))
 		}
 
-        return c.JSON(200, map[string]string{"message":"order status updated successfully!"})
+		return c.JSON(200, map[string]string{"message": "order status updated successfully!"})
 
 	}
 }

@@ -128,6 +128,7 @@ func HandleCompleteLogin(db *sql.DB) echo.HandlerFunc {
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Error converting user ID: %v", err))
 		}
+		
 		if err := UpdateLastLogin(db, userID); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Error updating last login: %v", err))
 		}

@@ -21,6 +21,9 @@
     - [Delete Product](#delete-product)
   - [Order API](#order-api)
     - [Create Order](#create-order)
+    - [Get Order By ID :](#get-order-by-id-)
+    - [Get All orders of a User](#get-all-orders-of-a-user)
+    - [Update order status:](#update-order-status)
 
 ## Authentication
 
@@ -426,3 +429,146 @@
   "delivery_city": "Springfield",
   "delivery_address_zip": 62701,
   "mode_of_delivery": "Standard Shipping",
+}
+```
+
+### Get Order By ID :
+
+**Request:**
+- Method:`GET`
+- URL : `http://localhost:8080/api/v1/orders/3`
+
+
+res :
+```
+{
+  "order_id": 3,
+  "quantity_in_kg": 8,
+  "total_price": 6922.88,
+  "status": "pending",
+  "mode_of_delivery": "Standard Shipping",
+  "expected_delivery_date": "2024-10-20T00:00:00Z",
+  "order_date": "2024-10-16T17:25:13.183105Z",
+  "product_id": 3,
+  "product_name": "mushroom",
+  "user_id": 2,
+  "user_first_name": "Amit",
+  "user_last_name": "Verma",
+  "user_phone_number": "6200059008",
+  "delivery_address": "123 Maple St",
+  "delivery_city": "Springfield",
+  "delivery_address_pin_code": 62701,
+  "buyers_phone_number": 9876543210,
+  "farmer_phone_number": 9876543219
+}
+```
+
+### Get All orders of a User
+
+**Request:**
+- Method:`GET`
+- URL : `http://localhost:8080/api/v1/user/1/orders`
+
+**Res** :
+```
+[
+  {
+    "order_details": {
+      "order_id": 3,
+      "quantity_in_kg": 8,
+      "total_price": 6922.88,
+      "status": "pending",
+      "mode_of_delivery": "Standard Shipping",
+      "expected_delivery_date": "2024-10-20T00:00:00Z",
+      "order_date": "2024-10-16T17:25:13.183105Z",
+      "product_id": 3,
+      "product_name": "mushroom"
+    },
+    "buyer_details": {
+      "buyer_first_name": "Amit",
+      "buyer_last_name": "Verma",
+      "buyer_phone_number": "6200059008",
+      "delivery_address": "123 Maple St",
+      "delivery_city": "Springfield",
+      "delivery_zip": 62701
+    },
+    "seller_details": {
+      "farmer_first_name": "",
+      "farmer_last_name": "",
+      "farmer_phone_number": ""
+    }
+  },
+  {
+    "order_details": {
+      "order_id": 2,
+      "quantity_in_kg": 4,
+      "total_price": 1061.44,
+      "status": "pending",
+      "mode_of_delivery": "Scheduled Delivery",
+      "expected_delivery_date": "2024-11-10T00:00:00Z",
+      "order_date": "2024-10-16T15:57:11.244085Z",
+      "product_id": 2,
+      "product_name": "jari"
+    },
+    "buyer_details": {
+      "buyer_first_name": "Rohan",
+      "buyer_last_name": "Sharma",
+      "buyer_phone_number": "6200059008",
+      "delivery_address": "321 Cedar Road",
+      "delivery_city": "Mountain View",
+      "delivery_zip": 94040
+    },
+    "seller_details": {
+      "farmer_first_name": "",
+      "farmer_last_name": "",
+      "farmer_phone_number": ""
+    }
+  },
+  {
+    "order_details": {
+      "order_id": 1,
+      "quantity_in_kg": 1,
+      "total_price": 865.36,
+      "status": "shipped",
+      "mode_of_delivery": "Scheduled Delivery",
+      "expected_delivery_date": "2024-11-10T00:00:00Z",
+      "order_date": "2024-10-16T15:56:54.880672Z",
+      "product_id": 3,
+      "product_name": "mushroom"
+    },
+    "buyer_details": {
+      "buyer_first_name": "Rohan",
+      "buyer_last_name": "Sharma",
+      "buyer_phone_number": "6200059008",
+      "delivery_address": "321 Cedar Road",
+      "delivery_city": "Mountain View",
+      "delivery_zip": 94040
+    },
+    "seller_details": {
+      "farmer_first_name": "",
+      "farmer_last_name": "",
+      "farmer_phone_number": ""
+    }
+  }
+]
+```
+
+### Update order status:
+
+**Request:**
+- Method:`PUT`
+- URL : `http://localhost:8080/api/v1/orders/id/status`
+
+- req body :
+
+```
+{
+  
+}
+```
+
+res : 
+```
+{"message": "order status updated successfully!"}
+```
+

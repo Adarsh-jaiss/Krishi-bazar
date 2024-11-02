@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -31,6 +32,20 @@ func main() {
 	// if err != nil {
 	// 	log.Fatal("Error loading .env file")
 	// }
+
+	fmt.Printf("DB_USER: %s\n DB_PASSWORD:%ss\n DB_HOST: %s\n DB_PORT=%s\n DB_NAME:%s\n TWILLo_ACCOUNT_SID: %s\n TWILIO_AUTH_TOKEN:%s\n TWILIO_VERIFY_SID: %s\n JWT_SECRET: %s\n", os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"),os.Getenv("DB_HOST"),os.Getenv("DB_PORT"),os.Getenv("DB_NAME"),os.Getenv("TWILLIO_ACCOUNT_SID"),os.Getenv("TWILIO_AUTH_TOKEN"),os.Getenv("TWILIO_VERIFY_SID"),os.Getenv("JWT_SECRET"))
+
+	os.Setenv("DB_USER", os.Getenv("DB_USER"))
+	os.Setenv("DB_PASSWORD", os.Getenv("DB_PASSWORD"))
+	os.Setenv("DB_HOST", os.Getenv("DB_HOST"))
+	os.Setenv("DB_PORT", os.Getenv("DB_PORT"))
+	os.Setenv("DB_NAME", os.Getenv("DB_NAME"))
+	os.Setenv("TWILLIO_ACCOUNT_SID", os.Getenv("TWILLIO_ACCOUNT_SID"))
+	os.Setenv("TWILIO_AUTH_TOKEN", os.Getenv("TWILIO_AUTH_TOKEN"))
+	os.Setenv("TWILIO_VERIFY_SID", os.Getenv("TWILIO_VERIFY_SID"))
+	os.Setenv("JWT_SECRET", os.Getenv("JWT_SECRET"))
+
+
 
 	conn, err := db.Connect()
 	if err != nil {

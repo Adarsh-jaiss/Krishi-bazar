@@ -19,14 +19,19 @@ import (
 	// "fmt"
 )
 
-func init() {
+// func init() {
+// 	err := godotenv.Load()
+// 	if err != nil {
+// 		log.Fatal("Error loading .env file")
+// 	}
+// }
+
+func main() {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-}
 
-func main() {
 	conn, err := db.Connect()
 	if err != nil {
 		panic(err)

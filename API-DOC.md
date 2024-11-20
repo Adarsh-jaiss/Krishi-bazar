@@ -101,6 +101,16 @@
   "verification_code": "935279"
 }
 ```
+- response :
+
+```
+{
+  "message": "User logged in successfully!",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzIzNjk5NTIsInVzZXJfaWQiOjEsInVzZXJfdHlwZSI6ImZhcm1lciJ9.sLgMDZTX3a3xr41yQgJ36a3YfMZnEbRP8-KDl5fStjA",
+  "user": 1
+}
+```
+
 
 ## User API
 

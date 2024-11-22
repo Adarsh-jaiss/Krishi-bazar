@@ -118,7 +118,7 @@
 
 **Request:**
 - Method: `GET`
-- URL: `http://localhost:8080/api/v1/user/1/profile`
+- URL: `http://localhost:8080/api/v1/user/1`
 
 **Response:**
 ```json

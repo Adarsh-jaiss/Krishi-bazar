@@ -86,7 +86,7 @@ func main() {
 
 	// User routes --> store userId locally which is being returned by login
 	user := v1.Group("/user")
-	user.GET("/:id", users.GetUserProfile(conn)) // -> user/123/profile , for req body i have to use post method and directly send the req body
+	user.GET("/:id", users.GetUserProfile(conn)) // -> user/123/ , for req body i have to use post method and directly send the req body
 	user.PUT("/:id/profile", users.UpdateProfile(conn))
 	user.POST("/:id/newproduct", product.CreateProduct(conn), authy.IsFarmer)
 	user.POST("", users.CreateUser(conn))

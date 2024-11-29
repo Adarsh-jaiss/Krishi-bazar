@@ -11,11 +11,12 @@ import (
 func GetOrderFromStore(db *sql.DB, orderID int) (types.OrderSummary, error) {
 	var order types.OrderSummary
 	var expectedDeliveryDate sql.NullTime
+	
 
 	query := `
 		SELECT 
 			o.id, o.quantity_in_kg, o.total_price, o.status, o.mode_of_delivery, 
-			o.expected_delivery_date, o.created_at, o.product_id, p.name,
+			o.expected_delivery_date, o.created_at, o.product_id, p.name,p.img,
 			u.id, u.first_name, u.last_name, u.phone_number,
 			o.delivery_address, o.delivery_city, o.delivery_address_zip,
 			o.buyers_phone_number, p.farmers_phone_number
@@ -31,7 +32,7 @@ func GetOrderFromStore(db *sql.DB, orderID int) (types.OrderSummary, error) {
 
 	err := db.QueryRow(query, orderID).Scan(
 		&order.OrderID, &order.QuantityInKg, &order.TotalPrice, &order.Status, &order.ModeOfDelivery,
-		&expectedDeliveryDate, &order.OrderDate, &order.ProductID, &order.ProductName,
+		&expectedDeliveryDate, &order.OrderDate, &order.ProductID, &order.ProductName,&order.ProductImg,
 		&order.UserID, &order.UserFirstName, &order.UserLastName, &order.UserPhoneNumber,
 		&order.DeliveryAddress, &order.DeliveryCity, &order.DeliveryAddressZIP,
 		&order.BuyersPhoneNumber, &order.FarmersPhoneNumber,
@@ -150,7 +151,7 @@ func GetOrdersBasedOnUser(db *sql.DB, userID int, userType string) ([]types.Orde
 			SELECT 
 				o.id, o.quantity_in_kg, o.total_price, o.status, o.mode_of_delivery, 
 				o.expected_delivery_date, o.created_at, 
-				p.id, p.name, 
+				p.id, p.name,p.img, 
 				b.first_name, b.last_name, b.phone_number, o.delivery_address, o.delivery_city, o.delivery_address_zip
 			FROM 
 				orders o
@@ -168,7 +169,7 @@ func GetOrdersBasedOnUser(db *sql.DB, userID int, userType string) ([]types.Orde
 			SELECT 
 				o.id, o.quantity_in_kg, o.total_price, o.status, o.mode_of_delivery, 
 				o.expected_delivery_date, o.created_at, 
-				p.id, p.name,
+				p.id, p.name,p.img
 				f.first_name, f.last_name, f.phone_number,
 				o.delivery_address, o.delivery_city, o.delivery_address_zip
 			FROM 
@@ -202,7 +203,7 @@ func GetOrdersBasedOnUser(db *sql.DB, userID int, userType string) ([]types.Orde
 			err := rows.Scan(
 				&o.OrderDetails.OrderID, &o.OrderDetails.QuantityInKg, &o.OrderDetails.TotalPrice, &o.OrderDetails.Status,
 				&o.OrderDetails.ModeOfDelivery, &expectedDeliveryDate, &o.OrderDetails.OrderDate,
-				&o.OrderDetails.ProductID, &o.OrderDetails.ProductName,
+				&o.OrderDetails.ProductID, &o.OrderDetails.ProductName,&o.OrderDetails.ProductImg,
 				&o.BuyersDetails.BuyerFirstName, &o.BuyersDetails.BuyerLastName,
 				&o.BuyersDetails.BuyerPhoneNumber, &o.BuyersDetails.DeliveryAddress, &o.BuyersDetails.DeliveryCity, &o.BuyersDetails.DeliveryZIP,
 			)
@@ -214,7 +215,7 @@ func GetOrdersBasedOnUser(db *sql.DB, userID int, userType string) ([]types.Orde
 			err := rows.Scan(
 				&o.OrderDetails.OrderID, &o.OrderDetails.QuantityInKg, &o.OrderDetails.TotalPrice, &o.OrderDetails.Status,
 				&o.OrderDetails.ModeOfDelivery, &expectedDeliveryDate, &o.OrderDetails.OrderDate,
-				&o.OrderDetails.ProductID, &o.OrderDetails.ProductName,
+				&o.OrderDetails.ProductID, &o.OrderDetails.ProductName,&o.OrderDetails.ProductImg,
 				&o.SellerDetails.FarmerFirstName, &o.SellerDetails.FarmerLastName, &o.SellerDetails.FarmerPhoneNumber,
 				&o.DeliveryAddress, &o.DeliveryCity, &o.DeliveryZIP,
 			)

@@ -30,6 +30,7 @@ type OrderDetails struct {
 	OrderDate            time.Time  `json:"order_date"`
 	ProductID            int        `json:"product_id"`
 	ProductName          string     `json:"product_name"`
+	ProductImg           string     `json:"product_img"`
 }
 
 // BuyersDetails struct contains information related to the buyer.

@@ -48,6 +48,7 @@ type OrderSummary struct {
 	DeliveryAddressZIP   int        `json:"delivery_address_pin_code"`
 	BuyersPhoneNumber    int        `json:"buyers_phone_number" db:"buyers_phone_number"`
 	FarmersPhoneNumber   int        `json:"farmer_phone_number" db:"farmers_phone_number"`
+	ProductImg           string     `json:"product_img" db:"img"`
 }
 
 // type OrderStatus struct {

@@ -26,7 +26,7 @@ type OrderDetails struct {
 	TotalPrice           float64    `json:"total_price"`
 	Status               string     `json:"status"`
 	ModeOfDelivery       string     `json:"mode_of_delivery"`
-	ExpectedDeliveryDate time.Time `json:"expected_delivery_date,omitempty"`
+	ExpectedDeliveryDate *time.Time `json:"expected_delivery_date,omitempty"`
 	OrderDate            time.Time  `json:"order_date"`
 	ProductID            int        `json:"product_id"`
 	ProductName          string     `json:"product_name"`

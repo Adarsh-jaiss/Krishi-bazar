@@ -195,11 +195,13 @@ func GetOrdersBasedOnUser(db *sql.DB, userID int, userType string) ([]types.Orde
 	var orders []types.OrderStatus
 	for rows.Next() {
 		var o types.OrderStatus
+		var expectedDeliveryDate sql.NullTime
+
 		if userType == "farmer" {
 			// Scan for farmer-specific data (including buyer details)
 			err := rows.Scan(
 				&o.OrderDetails.OrderID, &o.OrderDetails.QuantityInKg, &o.OrderDetails.TotalPrice, &o.OrderDetails.Status,
-				&o.OrderDetails.ModeOfDelivery, &o.OrderDetails.ExpectedDeliveryDate, &o.OrderDetails.OrderDate,
+				&o.OrderDetails.ModeOfDelivery, &expectedDeliveryDate, &o.OrderDetails.OrderDate,
 				&o.OrderDetails.ProductID, &o.OrderDetails.ProductName,
 				&o.BuyersDetails.BuyerFirstName, &o.BuyersDetails.BuyerLastName,
 				&o.BuyersDetails.BuyerPhoneNumber, &o.BuyersDetails.DeliveryAddress, &o.BuyersDetails.DeliveryCity, &o.BuyersDetails.DeliveryZIP,
@@ -211,7 +213,7 @@ func GetOrdersBasedOnUser(db *sql.DB, userID int, userType string) ([]types.Orde
 			// Scan for buyer-specific data (no buyer details, just the order and product info)
 			err := rows.Scan(
 				&o.OrderDetails.OrderID, &o.OrderDetails.QuantityInKg, &o.OrderDetails.TotalPrice, &o.OrderDetails.Status,
-				&o.OrderDetails.ModeOfDelivery, &o.OrderDetails.ExpectedDeliveryDate, &o.OrderDetails.OrderDate,
+				&o.OrderDetails.ModeOfDelivery, &expectedDeliveryDate, &o.OrderDetails.OrderDate,
 				&o.OrderDetails.ProductID, &o.OrderDetails.ProductName,
 				&o.SellerDetails.FarmerFirstName, &o.SellerDetails.FarmerLastName, &o.SellerDetails.FarmerPhoneNumber,
 				&o.DeliveryAddress, &o.DeliveryCity, &o.DeliveryZIP,
@@ -220,6 +222,14 @@ func GetOrdersBasedOnUser(db *sql.DB, userID int, userType string) ([]types.Orde
 				return nil, fmt.Errorf("failed to scan order: %v", err)
 			}
 		}
+
+		// Handle the nullable time value
+        if expectedDeliveryDate.Valid {
+            o.OrderDetails.ExpectedDeliveryDate = &expectedDeliveryDate.Time
+        } else {
+            o.OrderDetails.ExpectedDeliveryDate = nil
+        }
+
 		orders = append(orders, o)
 	}
 

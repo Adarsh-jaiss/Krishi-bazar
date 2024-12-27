@@ -69,6 +69,11 @@ func main() {
 
 	// e.Use(middleware.Recover())
 	api := e.Group("/api")
+	api.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
+	}))
 
 	// Public routes
 	auth := api.Group("/auth")

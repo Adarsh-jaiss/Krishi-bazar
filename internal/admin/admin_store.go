@@ -29,7 +29,7 @@ func GetAdminByID(db *sql.DB, id string) (Admin, error) {
     return Admin{}, fmt.Errorf("admin not found")
 }
 
-func GetAllUnapprovedFarmersFromStore(db *sql.DB) (types.User,error) {
+func GetAllUnapprovedFarmersFromStore(db *sql.DB) ([]types.User, error) {
     query := `
         SELECT u.id, u.img, u.first_name, u.last_name, u.aadhar_number, u.email, u.created_at
         FROM users u 
@@ -38,21 +38,27 @@ func GetAllUnapprovedFarmersFromStore(db *sql.DB) (types.User,error) {
 
     rows, err := db.Query(query)
     if err != nil {
-        return types.User{}, fmt.Errorf("failed to fetch unverified farmers: %v", err)
+        return nil, fmt.Errorf("failed to fetch unverified farmers: %v", err)
     }
     defer rows.Close()
 
-    var user types.User
-    var nullableImage sql.NullString
-    if rows.Next() {
-        err = rows.Scan(&user.ID, &nullableImage, &user.FirstName,&user.LastName, &user.AadharNumber, &user.Email, &user.CreatedAt)
+    var users []types.User
+    for rows.Next() {
+        var user types.User
+        var nullableImage sql.NullString
+        err = rows.Scan(&user.ID, &nullableImage, &user.FirstName, &user.LastName, &user.AadharNumber, &user.Email, &user.CreatedAt)
         if err != nil {
-            return types.User{}, fmt.Errorf("error scanning row: %v", err)
+            return nil, fmt.Errorf("error scanning row: %v", err)
         }
         user.Image = nullableImage.String
-        return user, nil
+        users = append(users, user)
     }
-    return types.User{}, fmt.Errorf("no unverified farmers found")
+
+    if len(users) == 0 {
+        return nil, fmt.Errorf("no unverified farmers found")
+    }
+
+    return users, nil
 }
 
 func ApproveUserStore(db *sql.DB, userID int) error {

@@ -76,7 +76,7 @@ func GetAllUnapprovedFarmers(db *sql.DB) echo.HandlerFunc {
 			return  echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Sprintf("error fetching users: %v", err))
 		}
 
-		return c.JSON(http.StatusFound, res)
+		return c.JSON(http.StatusOK, res)
 	}
 }
 
@@ -91,7 +91,7 @@ func ApproveUser(db *sql.DB) echo.HandlerFunc {
 			return echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Sprintf("error approving user: %v", err))
 		}
 
-		return c.JSON(http.StatusCreated, map[string]string{"message": "user approved successfully!"})
+		return c.JSON(http.StatusOK, map[string]string{"message": "user approved successfully!"})
 	}
 }
 
@@ -108,6 +108,6 @@ func ApproveProduct(db *sql.DB) echo.HandlerFunc {
 			return echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Sprintf("error approving product: %v", err))
 		}
 
-		return c.JSON(http.StatusCreated, map[string]string{"message": "product approved successfully!"})
+		return c.JSON(http.StatusOK, map[string]string{"message": "product approved successfully!"})
 	}
 }

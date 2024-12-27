@@ -13,7 +13,8 @@ type Approve struct {
 }
 
 type LoginRequest struct {
-	PhoneNumber      string `json:"phone_number"`
+	Email 			string  `json:"email"`
+	PhoneNumber      string `json:"phone_number,omitempty"`
 	AadharNumber     string `json:"aadhar_number,omitempty"`
 	VerificationCode string `json:"verification_code,omitempty"`
 	IsVerified       string `json:"is_verified,omitempty"`

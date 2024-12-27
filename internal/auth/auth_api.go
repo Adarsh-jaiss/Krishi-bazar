@@ -26,11 +26,14 @@ func HandleSignUp() echo.HandlerFunc {
 		u.LastLoginAt = time.Now()
 
 		// Call Authenticate function to send verification code
-		if err := Authenticate(u.PhoneNumber); err != nil {
+		if err := AuthenticateViaEmail(u.Email); err != nil {
 			return echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Sprintf("error sending verification code: %v", err))
 		}
 
-		return c.JSON(http.StatusCreated, map[string]string{"message": "verification code sent successfully!"})
+		return c.JSON(http.StatusCreated, map[string]string{
+			"message": "verification code sent successfully!",
+			"email": u.Email,
+		})
 	}
 }
 
@@ -41,8 +44,8 @@ func HandleCompleteSignup(db *sql.DB) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusBadRequest, "Invalid request data")
 		}
 
-		// Verify the code
-		if err := VerifyCode(req.User.PhoneNumber, req.VerificationCode); err != nil {
+		// Verify the OTP
+		if err := VerifyOTP(req.User.Email, req.VerificationCode); err != nil {
 			return echo.NewHTTPError(http.StatusUnauthorized, fmt.Sprintf("Verification failed: %v", err))
 		}
 
@@ -57,7 +60,7 @@ func HandleCompleteSignup(db *sql.DB) echo.HandlerFunc {
 		}
 
 		// Create auth record
-		if err := CreateAuthRecord(db, userID, req.VerificationCode,req.User.PhoneNumber); err != nil {
+		if err := CreateAuthRecord(db, userID, req.VerificationCode, req.User.PhoneNumber); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Error creating auth record: %v", err))
 		}
 
@@ -95,7 +98,7 @@ func HandleLogin() echo.HandlerFunc {
 		}
 
 		// Call Authenticate function to send verification code
-		if err := Authenticate(req.PhoneNumber); err != nil {
+		if err := AuthenticateViaEmail(req.Email); err != nil {
 			return echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Sprintf("error sending verification code: %v", err))
 		}
 
@@ -113,12 +116,12 @@ func HandleCompleteLogin(db *sql.DB) echo.HandlerFunc {
 		}
 
 		// Verify the code
-		if err := VerifyCode(req.PhoneNumber, req.VerificationCode); err != nil {
+		if err := VerifyOTP(req.Email, req.VerificationCode); err != nil {
 			return echo.NewHTTPError(http.StatusUnauthorized, fmt.Sprintf("Verification failed: %v", err))
 		}
 
 		// Get user from database
-		u, err := GetUserByPhoneNumberAndAadharNo(db, req)
+		u, err := GetUserByAadharNo(db, req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("User not found: %v", err))
 		}
@@ -128,7 +131,7 @@ func HandleCompleteLogin(db *sql.DB) echo.HandlerFunc {
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Error converting user ID: %v", err))
 		}
-		
+
 		if err := UpdateLastLogin(db, userID); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Error updating last login: %v", err))
 		}
@@ -140,7 +143,7 @@ func HandleCompleteLogin(db *sql.DB) echo.HandlerFunc {
 		}
 
 		// return c.JSON(http.StatusOK, map[string]string{"message": "user logged in successfully!"})
-	
+
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"message": "User logged in successfully!",
 			"token":   token,

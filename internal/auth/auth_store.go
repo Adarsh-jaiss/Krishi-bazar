@@ -7,16 +7,16 @@ import (
 	"github.com/adarsh-jaiss/agrohub/types"
 )
 
-func GetUserByPhoneNumberAndAadharNo(db *sql.DB, v types.LoginRequest) (types.User, error) {
+func GetUserByAadharNo(db *sql.DB, v types.LoginRequest) (types.User, error) {
 	query := `
         SELECT id, first_name, last_name, email, phone_number, aadhar_number, user_type, img, created_at, updated_at, last_login_at
         FROM users
-        WHERE aadhar_number = $1 AND phone_number = $2;
+        WHERE aadhar_number = $1;
     `
 
 	var user types.User
 
-	err := db.QueryRow(query, v.AadharNumber, v.PhoneNumber).Scan(
+	err := db.QueryRow(query, v.AadharNumber).Scan(
 		&user.ID,
 		&user.FirstName,
 		&user.LastName,

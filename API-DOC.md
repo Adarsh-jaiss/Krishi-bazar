@@ -70,7 +70,7 @@
     "pin_code": "456001",
     "farm_size": "3"
   },
-  "verification_code": "355193"
+  "verification_code": "2509"
 }
 ```
 
@@ -82,7 +82,7 @@
 - Body:
 ```json
 {
-  "phone_number": "6200059008",
+  "email": "rohan.sharma@example.com",
   "aadhar_number": "582228381168",
   "verification_code": ""
 }
@@ -96,7 +96,7 @@
 - Body:
 ```json
 {
-  "phone_number": "6200059008",
+  "email": "rohan.sharma@example.com",
   "aadhar_number": "582228381168",
   "verification_code": "935279"
 }

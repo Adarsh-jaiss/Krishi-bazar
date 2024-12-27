@@ -1,6 +1,8 @@
 module github.com/adarsh-jaiss/agrohub
 
-go 1.22.1
+go 1.23
+
+toolchain go1.23.4
 
 require github.com/lib/pq v1.10.9
 
@@ -15,6 +17,7 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/resend/resend-go/v2 v2.13.0 // indirect
 	github.com/supabase-community/functions-go v0.0.0-20220927045802-22373e6cb51d // indirect
 	github.com/supabase-community/gotrue-go v1.2.0 // indirect
 	github.com/supabase-community/postgrest-go v0.0.11 // indirect

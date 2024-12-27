@@ -11,11 +11,11 @@ import (
 )
 
 func GenerateToken(userID int, userType string) (string, error) {
-	claims := jwt.MapClaims{
-		"user_id":   userID,
-		"user_type": userType,
-		"exp":       time.Now().Add(time.Hour * 360).Unix(), // Token expires in 72 hours
-	}
+    claims := jwt.MapClaims{
+        "user_id":   userID,
+        "user_type": userType,
+        "exp":       time.Now().Add(time.Hour * 24 * 365).Unix(), // Token expires in 1 year
+    }
 
 	fmt.Println(claims)
 

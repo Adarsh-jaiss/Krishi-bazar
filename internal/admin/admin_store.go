@@ -65,7 +65,7 @@ func ApproveUserStore(db *sql.DB, userID int) error {
     updateUsersQuery := `
     UPDATE users
     SET updated_at = NOW()
-    WHERE id = $2;
+    WHERE id = $1;
     `
 
     // Execute the farmers update query

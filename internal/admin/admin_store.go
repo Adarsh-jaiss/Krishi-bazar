@@ -58,7 +58,7 @@ func GetAllUnapprovedFarmersFromStore(db *sql.DB) (types.User,error) {
 func ApproveUserStore(db *sql.DB, userID int) error {
     query := `
     UPDATE farmers
-    SET is_verified = true
+    SET is_verified_by_admin = true
     WHERE user_id = $1;
     `
 
@@ -86,7 +86,7 @@ func ApproveUserStore(db *sql.DB, userID int) error {
 func ApproveProductInStore(db *sql.DB, v types.ApproveProduct) error {
     q := `
     UPDATE products
-    SET is_approved = $1, updated_at = NOW()
+    SET is_verified_by_admin = $1, updated_at = NOW()
     WHERE product_id = $2;
     `
 

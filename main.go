@@ -70,9 +70,12 @@ func main() {
 	// e.Use(middleware.Recover())
 	api := e.Group("/api")
 	api.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"*"},
-		AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE},
+		AllowOrigins: []string{"https://krishi-bazar-xi.vercel.app", "*"},
+		AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
+		AllowCredentials: true,
+		ExposeHeaders: []string{"Content-Length"},
+		MaxAge: 86400,
 	}))
 
 	// Public routes

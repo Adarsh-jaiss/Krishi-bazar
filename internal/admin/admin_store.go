@@ -31,10 +31,10 @@ func GetAdminByID(db *sql.DB, id string) (Admin, error) {
 
 func GetAllUnapprovedFarmersFromStore(db *sql.DB) (types.User,error) {
     query := `
-    SELECT u.* 
-    FROM users u 
-    JOIN farmers f ON u.id = f.user_id 
-    WHERE f.is_verified = false;`
+        SELECT u.id, u.img, u.first_name, u.last_name, u.aadhar_number, u.email, u.created_at
+        FROM users u 
+        JOIN farmers f ON u.id = f.user_id 
+        WHERE f.is_verified_by_admin = false;`
 
     rows, err := db.Query(query)
     if err != nil {
@@ -43,11 +43,13 @@ func GetAllUnapprovedFarmersFromStore(db *sql.DB) (types.User,error) {
     defer rows.Close()
 
     var user types.User
+    var nullableImage sql.NullString
     if rows.Next() {
-        err = rows.Scan(&user.ID, &user.Image, &user.FirstName,&user.LastName, &user.AadharNumber, &user.Email, &user.CreatedAt)
+        err = rows.Scan(&user.ID, &nullableImage, &user.FirstName,&user.LastName, &user.AadharNumber, &user.Email, &user.CreatedAt)
         if err != nil {
             return types.User{}, fmt.Errorf("error scanning row: %v", err)
         }
+        user.Image = nullableImage.String
         return user, nil
     }
     return types.User{}, fmt.Errorf("no unverified farmers found")
@@ -99,6 +101,7 @@ func ApproveProductInStore(db *sql.DB, v types.ApproveProduct) error {
 
 func GetUserFromStore(db *sql.DB, userID int) (types.User, error) {
     var user types.User
+    var nullableImage sql.NullString
 
     // First, get the user type
     var userType string
@@ -107,44 +110,29 @@ func GetUserFromStore(db *sql.DB, userID int) (types.User, error) {
         return types.User{}, fmt.Errorf("error finding user type: %v", err)
     }
 
-    // Base query for user information
-    baseQuery := `
-    SELECT
-        u.id, u.first_name, u.last_name, u.email, u.phone_number, u.aadhar_number,
-        u.user_type, u.img, u.created_at, u.updated_at, u.last_login_at`
-
-    // Additional fields and join based on user type
-    var additionalFields string
-    var joinClause string
-    var scanArgs []interface{}
-
     switch userType {
     case "farmer":
-        additionalFields = `, f.is_verified_by_admin, f.farm_size, f.address, f.city, f.state, f.pin_code`
-        joinClause = ` LEFT JOIN farmers f ON u.id = f.user_id`
-        scanArgs = []interface{}{
+        query := `
+        SELECT
+            u.id, u.first_name, u.last_name, u.email, u.phone_number, u.aadhar_number,
+            u.user_type, u.img, u.created_at, u.updated_at,
+            f.is_verified_by_admin, f.farm_size, f.address, f.city, f.state, f.pin_code
+        FROM users u
+        LEFT JOIN farmers f ON u.id = f.user_id
+        WHERE u.id = $1`
+
+        err = db.QueryRow(query, userID).Scan(
             &user.ID, &user.FirstName, &user.LastName, &user.Email, &user.PhoneNumber, &user.AadharNumber,
-            &user.UserType, &user.Image, &user.CreatedAt, &user.UpdatedAt, &user.LastLoginAt,
+            &user.UserType, &nullableImage, &user.CreatedAt, &user.UpdatedAt,
             &user.IsVerified, &user.FarmSize, &user.Address, &user.City, &user.State, &user.PinCode,
-        }
-    default:
-        // For admin or any other user type, we just use the base query
-        scanArgs = []interface{}{
-            &user.ID, &user.FirstName, &user.LastName, &user.Email, &user.PhoneNumber, &user.AadharNumber,
-            &user.UserType, &user.Image, &user.CreatedAt, &user.UpdatedAt, &user.LastLoginAt,
-        }
+        )
     }
 
-    // Combine the query parts
-    fullQuery := baseQuery + additionalFields + " FROM users u" + joinClause + " WHERE u.id = $1"
-
-    // Execute the query
-    err = db.QueryRow(fullQuery, userID).Scan(scanArgs...)
     if err != nil {
         return types.User{}, fmt.Errorf("error finding user: %v", err)
     }
 
-    // Set IsFarmer based on user type
+    user.Image = nullableImage.String
     user.IsFarmer = (userType == "farmer")
 
     return user, nil

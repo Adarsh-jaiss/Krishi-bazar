@@ -12,7 +12,7 @@ import (
 )
 
 type Admin struct {
-	AdminID  int `json:"admin_id" db:"id"`
+	AdminID  int `json:"admin_id,omitempty" db:"id"`
 	UserName string `json:"username" db:"username"`
 	Password string `json:"password" db:"password"`
 }
@@ -29,7 +29,11 @@ func AdminLogin(db *sql.DB) echo.HandlerFunc {
 			return echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Sprintf("error finding admin: %v", err))
 		}
 
-		if a.AdminID == res.AdminID && a.Password == res.Password {
+		fmt.Printf("Login attempt - Username: %s, Admin details: %+v\n", a.UserName, a.Password)
+
+		fmt.Printf("%v:%v\n%v:%v\n",a.UserName,res.UserName,a.Password,res.Password)
+
+		if a.Password == res.Password {
 			// Generate JWT token
 			token, err := authy.GenerateToken(res.AdminID, "admin")
 			if err != nil {

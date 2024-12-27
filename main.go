@@ -87,14 +87,16 @@ func main() {
 
 	// Admin routes
 	admin := api.Group("/admin")
-	admin.Use(echojwt.WithConfig(echojwt.Config{
+	admin.POST("/login", admins.AdminLogin(conn))
+
+	adminv1 := admin.Group("/v1")
+	adminv1.Use(echojwt.WithConfig(echojwt.Config{
 		SigningKey: []byte(os.Getenv("JWT_SECRET")),
 	}))
-	admin.POST("/login", admins.AdminLogin(conn))
-	admin.GET("/dashboard", admins.GetAllUnapprovedFarmers(conn))
-	admin.GET("/users/:id", admins.GetUserProfile(conn))
-	admin.POST("/user/:id/approve", admins.ApproveUser(conn))
-	admin.POST("/approve-product", admins.ApproveProduct(conn))
+	adminv1.GET("/dashboard", admins.GetAllUnapprovedFarmers(conn))
+	adminv1.GET("/users/:id", admins.GetUserProfile(conn))
+	adminv1.POST("/user/:id/approve", admins.ApproveUser(conn))
+	adminv1.POST("/approve-product", admins.ApproveProduct(conn))
 
 	// protected routes
 	v1 := api.Group("/v1")

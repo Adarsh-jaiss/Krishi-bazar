@@ -78,12 +78,12 @@ func GetAllUnapprovedFarmers(db *sql.DB) echo.HandlerFunc {
 
 func ApproveUser(db *sql.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var a types.Approve
-		if err := c.Bind(&a); err != nil {
+		userID, err := strconv.Atoi(c.Param("id"))	
+		if err != nil {
 			return echo.NewHTTPError(echo.ErrBadRequest.Code, "Invalid user data")
 		}
 
-		if err := ApproveUserStore(db, a); err != nil {
+		if err := ApproveUserStore(db, userID); err != nil {
 			return echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Sprintf("error approving user: %v", err))
 		}
 

@@ -77,8 +77,8 @@ func main() {
 	}))
 	admin.POST("/login", admins.AdminLogin(conn))
 	admin.GET("/dashboard", admins.GetAllUnapprovedFarmers(conn))
-	admin.GET("/user/:id", admins.GetUserProfile(conn))
-	admin.POST("/approve-user", admins.ApproveUser(conn))
+	admin.GET("/users/:id", admins.GetUserProfile(conn))
+	admin.POST("/user/:id/approve", admins.ApproveUser(conn))
 	admin.POST("/approve-product", admins.ApproveProduct(conn))
 
 	// protected routes

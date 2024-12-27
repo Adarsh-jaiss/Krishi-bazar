@@ -50,6 +50,13 @@ func main() {
 		panic(err)
 	}
 
+	// tables := []string {"users", "farmers", "buyers", "admins", "auth", "products", "orders"}
+	// for i := 0; i < len(tables); i++ {
+	// 	if err := db.DropTable(conn, tables[i]); err!= nil {
+	// 		panic(err)
+	// 	}
+	// }
+
 	if err = db.CreateTable(); err != nil {
 		log.Printf("error creating table : %v", err)
 		panic(err)

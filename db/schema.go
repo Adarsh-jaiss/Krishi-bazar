@@ -74,9 +74,10 @@ func CreateTable() error {
 
 	createAdminsTable := `
 	CREATE TABLE IF NOT EXISTS admins (
-		id SERIAL 
-    	username INT PRIMARY KEY UNIQUE,
-    	password VARCHAR(25) 
+		id SERIAL,
+		username VARCHAR(255) NOT NULL UNIQUE,
+		password VARCHAR(25),
+		PRIMARY KEY (username)
 	);`
 
 	createAuthTable := `

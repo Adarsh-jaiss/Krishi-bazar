@@ -21,6 +21,7 @@ func UpdateProfileInStore(db *sql.DB, userID int, newPhoneNumber string) error {
 
     return nil
 }
+
 func GetUserProfileFromStore(db *sql.DB, userID int) (types.User, error) {
     var user types.User
 

@@ -24,6 +24,7 @@
     - [Get Order By ID :](#get-order-by-id-)
     - [Get All orders of a User](#get-all-orders-of-a-user)
     - [Update order status:](#update-order-status)
+    - [Admin](#admin)
 
 ## Authentication
 
@@ -582,3 +583,12 @@ res :
 {"message": "order status updated successfully!"}
 ```
 
+### Admin 
+
+```
+http://localhost:8080/api/admin/login	
+http://localhost:8080/api/admin/dasboard	
+http://localhost:8080/api/admin/user/:id	
+http://localhost:8080/api/admin/approve-user	
+http://localhost:8080/api/admin/approve-product	
+```

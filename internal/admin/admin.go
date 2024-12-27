@@ -4,12 +4,78 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"strconv"
 
+	authy "github.com/adarsh-jaiss/agrohub/internal/auth"
 	"github.com/adarsh-jaiss/agrohub/types"
 	"github.com/labstack/echo/v4"
 )
 
-// TODO: add user ID from client side only from the list of all unapproved profiles.
+type Admin struct {
+	AdminID  int `json:"admin_id" db:"id"`
+	UserName string `json:"username" db:"username"`
+	Password string `json:"password" db:"password"`
+}
+
+func AdminLogin(db *sql.DB) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var a Admin
+		if err := c.Bind(&a); err != nil {
+			return echo.NewHTTPError(echo.ErrBadRequest.Code, "Invalid Request")
+		}
+
+		res, err := GetAdminByID(db, a.UserName)
+		if err != nil {
+			return echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Sprintf("error finding admin: %v", err))
+		}
+
+		if a.AdminID == res.AdminID && a.Password == res.Password {
+			// Generate JWT token
+			token, err := authy.GenerateToken(res.AdminID, "admin")
+			if err != nil {
+				return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Error generating token: %v", err))
+			}
+
+			// return c.JSON(http.StatusOK, map[string]string{"message": "user logged in successfully!"})
+
+			return c.JSON(http.StatusOK, map[string]interface{}{
+				"message": "User logged in successfully!",
+				"token":   token,
+				"user":    res.AdminID,
+			})
+
+		}
+		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid credentials")
+	}
+}
+
+func GetUserProfile(db *sql.DB) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		userID, err := strconv.Atoi(c.Param("id"))		// using path parameter -> for query use c.query("id")
+		if err != nil {
+			return echo.NewHTTPError(echo.ErrBadRequest.Code, fmt.Sprintf("Invalid user ID: %v", err))
+		}
+
+		res, err := GetUserFromStore(db, userID)
+		if err != nil {
+			return echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Sprintf("error getting user profile: %v", err))
+		}
+
+		return c.JSON(http.StatusOK, res)
+	}
+}
+
+func GetAllUnapprovedFarmers(db *sql.DB) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		res, err := GetAllUnapprovedFarmersFromStore(db)
+		if err!= nil {
+			return  echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Sprintf("error fetching users: %v", err))
+		}
+
+		return c.JSON(http.StatusFound, res)
+	}
+}
+
 func ApproveUser(db *sql.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var a types.Approve

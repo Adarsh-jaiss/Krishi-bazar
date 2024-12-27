@@ -33,7 +33,7 @@ func main() {
 	// 	log.Fatal("Error loading .env file")
 	// }
 
-	fmt.Printf("DB_USER: %s\n DB_PASSWORD:%ss\n DB_HOST: %s\n DB_PORT=%s\n DB_NAME:%s\n TWILLo_ACCOUNT_SID: %s\n TWILIO_AUTH_TOKEN:%s\n TWILIO_VERIFY_SID: %s\n JWT_SECRET: %s\n", os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"),os.Getenv("DB_HOST"),os.Getenv("DB_PORT"),os.Getenv("DB_NAME"),os.Getenv("TWILLIO_ACCOUNT_SID"),os.Getenv("TWILIO_AUTH_TOKEN"),os.Getenv("TWILIO_VERIFY_SID"),os.Getenv("JWT_SECRET"))
+	fmt.Printf("DB_USER: %s\n DB_PASSWORD:%ss\n DB_HOST: %s\n DB_PORT=%s\n DB_NAME:%s\n TWILLo_ACCOUNT_SID: %s\n TWILIO_AUTH_TOKEN:%s\n TWILIO_VERIFY_SID: %s\n JWT_SECRET: %s\n", os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_NAME"), os.Getenv("TWILLIO_ACCOUNT_SID"), os.Getenv("TWILIO_AUTH_TOKEN"), os.Getenv("TWILIO_VERIFY_SID"), os.Getenv("JWT_SECRET"))
 
 	os.Setenv("DB_USER", os.Getenv("DB_USER"))
 	os.Setenv("DB_PASSWORD", os.Getenv("DB_PASSWORD"))
@@ -44,8 +44,6 @@ func main() {
 	os.Setenv("TWILIO_AUTH_TOKEN", os.Getenv("TWILIO_AUTH_TOKEN"))
 	os.Setenv("TWILIO_VERIFY_SID", os.Getenv("TWILIO_VERIFY_SID"))
 	os.Setenv("JWT_SECRET", os.Getenv("JWT_SECRET"))
-
-
 
 	conn, err := db.Connect()
 	if err != nil {
@@ -73,9 +71,15 @@ func main() {
 	auth.POST("/complete-login", authy.HandleCompleteLogin(conn))
 
 	// Admin routes
-	admin := api.Group("/admin/approve")
-	admin.POST("/user", admins.ApproveUser(conn))
-	admin.POST("/product", admins.ApproveProduct(conn))
+	admin := api.Group("/admin")
+	admin.Use(echojwt.WithConfig(echojwt.Config{
+		SigningKey: []byte(os.Getenv("JWT_SECRET")),
+	}))
+	admin.POST("/login", admins.AdminLogin(conn))
+	admin.GET("/dashboard", admins.GetAllUnapprovedFarmers(conn))
+	admin.GET("/user/:id", admins.GetUserProfile(conn))
+	admin.POST("/approve-user", admins.ApproveUser(conn))
+	admin.POST("/approve-product", admins.ApproveProduct(conn))
 
 	// protected routes
 	v1 := api.Group("/v1")
@@ -107,9 +111,9 @@ func main() {
 	// Order routes
 	products.POST("/:id/order", order.CreateOrder(conn))
 	orders := v1.Group("/orders")
-	user.GET("/:id/orders", order.GetOrders(conn))	// -> GET ALL ORDERS
-	orders.GET("/:id", order.GetOrdersByID(conn))	// -> GET ORDER BY ID
-	orders.PUT("/:id/status", order.UpdateOrderStatus(conn))	
+	user.GET("/:id/orders", order.GetOrders(conn)) // -> GET ALL ORDERS
+	orders.GET("/:id", order.GetOrdersByID(conn))  // -> GET ORDER BY ID
+	orders.PUT("/:id/status", order.UpdateOrderStatus(conn))
 
 	e.Logger.Fatal(e.Start(":8080"))
 }

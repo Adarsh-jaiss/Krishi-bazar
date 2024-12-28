@@ -48,7 +48,7 @@ func AuthenticateViaEmail(email string) error {
 	}
 
 	// Initialize Resend client
-	apiKey := "re_3Qm4iMF8_5Y5iuFJN8iosJKimcMTdUBNa"
+	apiKey := "re_FQJrgqpy_AWHPQneVg8cciz8EQPfzVCuw"
 
 	client := resend.NewClient(apiKey)
 
@@ -96,16 +96,6 @@ func VerifyOTP(email, providedOTP string) error {
 	delete(otpStore, email)
 	return nil
 }
-
-
-
-
-
-
-
-
-
-
 
 //  AUTH VIA PHONE NUMBER -> TWILLIO
 

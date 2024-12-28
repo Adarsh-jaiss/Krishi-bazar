@@ -62,7 +62,7 @@ func AuthenticateViaEmail(email string) error {
 	`, otp)
 
 	params := &resend.SendEmailRequest{
-		From:    "Krishi Bazar <onboarding@resend.dev>",
+		From:    "Krishi Bazar <krishibazar25@gmail.com>",
 		To:      []string{email},
 		Html:    htmlContent,
 		Subject: "Your Verification Code - Krishi Bazar",

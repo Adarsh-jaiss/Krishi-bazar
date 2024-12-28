@@ -48,7 +48,8 @@ func AuthenticateViaEmail(email string) error {
 	}
 
 	// Initialize Resend client
-	apiKey := "re_entHnyme_8VjY4aURH7UFS4pajh6Hd5Uv"
+	apiKey := "re_5v6jJa7s_PCgfteeEtSmkpbuhSz6NggY4"
+	// apiKey := "re_entHnyme_8VjY4aURH7UFS4pajh6Hd5Uv"
 
 	client := resend.NewClient(apiKey)
 
@@ -62,7 +63,7 @@ func AuthenticateViaEmail(email string) error {
 	`, otp)
 
 	params := &resend.SendEmailRequest{
-		From:    "Krishi Bazar <test@resend.dev>",
+		From:    "krishibazar@mailertech.xyz",
 		To:      []string{email},
 		Html:    htmlContent,
 		Subject: "Your Verification Code - Krishi Bazar",

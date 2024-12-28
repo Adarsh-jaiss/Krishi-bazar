@@ -24,38 +24,41 @@ func UpdateProductAvailabilityInStore(db *sql.DB, ProductID int, availabilty boo
 func GetAllProductsFromStore(db *sql.DB) ([]types.Product, error) {
 	q := `
 		SELECT p.id, p.farmer_id, p.name, p.type, p.img, p.quantity_in_kg, 
-    	p.rate_per_kg, p.jari_size, p.expected_delivery, 
-    	p.farmers_phone_number, p.created_at, p.updated_at,
-    	u.first_name AS farmer_first_name, u.last_name AS farmer_last_name
+		p.rate_per_kg, p.jari_size, p.expected_delivery, 
+		p.farmers_phone_number, p.created_at, p.updated_at,
+		p.is_available, p.is_verified_by_admin,
+		u.first_name AS farmer_first_name, u.last_name AS farmer_last_name
 		FROM 
-		    products p
+			products p
 		JOIN 
-		    users u ON p.farmer_id = u.id
+			users u ON p.farmer_id = u.id
 		ORDER BY 
-		    p.created_at DESC;`
+			p.created_at DESC;`
 
 	rows, err := db.Query(q)
 	if err != nil {
-		return nil, echo.NewHTTPError(echo.ErrInternalServerError.Code, "failed to fetch rows from store :%v", err)
+		return nil, echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Sprintf("failed to fetch rows from store :%v", err))
 	}
 	defer rows.Close()
 
 	var products []types.Product
 	for rows.Next() {
 		var p types.Product
+		var nullJariSize sql.NullString
 		if err := rows.Scan(
 			&p.ID, &p.FarmerID, &p.Name, &p.Type, &p.Img, &p.Quantity,
-			&p.RatePerKg, &p.JariSize, &p.ExpectedDelivery,
+			&p.RatePerKg, &nullJariSize, &p.ExpectedDelivery,
 			&p.FarmersPhoneNumber, &p.CreatedAt, &p.UpdatedAt,
+			&p.IsAvailable, &p.IsVerifiedByAdmin,
 			&p.FarmerFirstName, &p.FarmerLastName,
 		); err != nil {
-			return nil, echo.NewHTTPError(echo.ErrInternalServerError.Code, "failed to scan rows: %v", err)
+			return nil, echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Sprintf("failed to scan rows: %v", err))
 		}
+		p.JariSize = nullJariSize.String
 		products = append(products, p)
 	}
 
 	return products, nil
-
 }
 
 func GetAllMushroomAndJariProductsFromStore(db *sql.DB, productType string) ([]types.Product, error) {

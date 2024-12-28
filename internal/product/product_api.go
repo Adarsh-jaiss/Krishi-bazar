@@ -32,7 +32,7 @@ func ListAllProducts(db *sql.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		res, err := GetAllProductsFromStore(db)
 		if err != nil {
-			return echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Sprintf("failed to fetch products from store: %v", err))
+			return echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Sprintf("failed to fetch products from store: %+v", err))
 		}
 		return c.JSON(200, res)
 	}

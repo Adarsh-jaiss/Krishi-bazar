@@ -40,7 +40,7 @@ func ListAllProducts(db *sql.DB) echo.HandlerFunc {
 
 func ListJariProducts(db *sql.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		res, err := GetAllMushroomAndJariProductsFromStore(db,"jari")
+		res, err := GetAllMushroomAndJariProductsFromStore(db,"Jari")
 		if err != nil {
 			return echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Sprintf("failed to fetch jari products from store: %v", err))
 		}
@@ -50,7 +50,7 @@ func ListJariProducts(db *sql.DB) echo.HandlerFunc {
 
 func ListMushroomProducts(db *sql.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		res, err := GetAllMushroomAndJariProductsFromStore(db,"mushroom")
+		res, err := GetAllMushroomAndJariProductsFromStore(db,"Mushroom")
 		if err != nil {
 			return echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Sprintf("failed to fetch mushroom products from store: %v", err))
 		}

@@ -66,42 +66,46 @@ func GetAllMushroomAndJariProductsFromStore(db *sql.DB, productType string) ([]t
 	// Base query
 	q := `
 		SELECT p.id, p.farmer_id, p.name, p.type, p.img, p.quantity_in_kg, 
-    	p.rate_per_kg, p.jari_size, p.expected_delivery, 
-    	p.farmers_phone_number, p.created_at, p.updated_at,
-    	u.first_name AS farmer_first_name, u.last_name AS farmer_last_name
+		p.rate_per_kg, p.jari_size, p.expected_delivery, 
+		p.farmers_phone_number, p.created_at, p.updated_at,
+		u.first_name AS farmer_first_name, u.last_name AS farmer_last_name
 		FROM products p
 		JOIN users u ON p.farmer_id = u.id`
 
 	// Add WHERE clause if productType is "jari" or "mushroom"
 	switch productType {
-	case "jari":
-		q += " WHERE p.name = 'jari'"
-	case "mushroom":
-		q += " WHERE p.name = 'mushroom'"
+	case "Jari", "Mushroom":
+		q += " WHERE p.type = $1"
 	}
 
 	// Add ORDER BY clause after WHERE
 	q += " ORDER BY p.created_at DESC"
 
-	// Execute query
-	rows, err := db.Query(q)
+	// Execute query with or without parameter
+	var rows *sql.Rows
+	var err error
+	if productType == "Jari" || productType == "Mushroom" {
+		rows, err = db.Query(q, productType)
+	}
+	
 	if err != nil {
 		return nil, echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Sprintf("failed to fetch rows from store: %v", err))
 	}
 	defer rows.Close()
 
-	// Scan rows and collect product data
 	var products []types.Product
 	for rows.Next() {
 		var p types.Product
+		var nullJariSize sql.NullString
 		if err := rows.Scan(
 			&p.ID, &p.FarmerID, &p.Name, &p.Type, &p.Img, &p.Quantity,
-			&p.RatePerKg, &p.JariSize, &p.ExpectedDelivery,
+			&p.RatePerKg, &nullJariSize, &p.ExpectedDelivery,
 			&p.FarmersPhoneNumber, &p.CreatedAt, &p.UpdatedAt,
 			&p.FarmerFirstName, &p.FarmerLastName,
 		); err != nil {
 			return nil, echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Sprintf("failed to scan rows: %v", err))
 		}
+		p.JariSize = nullJariSize.String
 		products = append(products, p)
 	}
 

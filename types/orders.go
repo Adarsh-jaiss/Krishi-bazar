@@ -13,7 +13,7 @@ type Order struct {
 	DeliveryAddressZIP   int        `json:"delivery_address_zip" db:"delivery_address_pin_code"`
 	Status               string     `json:"status" db:"status"`
 	ModeOfDelivery       string     `json:"mode_of_delivery" db:"mode_of_delivery"`
-	ExpectedDeliveryDate *time.Time `json:"expected_delivery_date,omitempty" db:"expected_delivery_date"`
+	ExpectedDeliveryDate time.Time  `json:"expected_delivery_date" time_format:"2006-01-02" db:"expected_delivery_date"`
 	CreatedAt            time.Time  `json:"created_at" db:"created_at"`
 	UpdatedAt            time.Time  `json:"updated_at" db:"updated_at"`
 	BuyersPhoneNumber    int        `json:"buyers_phone_number" db:"buyers_phone_number"` // -> In case he's using another number for caling

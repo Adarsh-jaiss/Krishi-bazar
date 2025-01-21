@@ -116,7 +116,7 @@ func GetProductFromStore(db *sql.DB, ProductID int) (types.Product, error) {
 	q := `
 	SELECT p.id, p.farmer_id, p.name, p.type, p.img, p.quantity_in_kg, 
 	p.rate_per_kg, p.jari_size, p.expected_delivery, 
-	p.farmers_phone_number, p.created_at, p.updated_at,
+	p.farmers_phone_number, p.created_at, p.updated_at, p.is_available,
 	u.first_name AS farmer_first_name, u.last_name AS farmer_last_name
 	FROM 
 		products p
@@ -129,7 +129,7 @@ func GetProductFromStore(db *sql.DB, ProductID int) (types.Product, error) {
 	if err := db.QueryRow(q, ProductID).Scan(
 		&p.ID, &p.FarmerID, &p.Name, &p.Type, &p.Img, &p.Quantity,
 		&p.RatePerKg, &p.JariSize, &p.ExpectedDelivery,
-		&p.FarmersPhoneNumber, &p.CreatedAt, &p.UpdatedAt,
+		&p.FarmersPhoneNumber, &p.CreatedAt, &p.UpdatedAt, &p.IsAvailable,
 		&p.FarmerFirstName, &p.FarmerLastName,
 	); err != nil {
 		return types.Product{}, echo.NewHTTPError(echo.ErrInternalServerError.Code, "failed to scan rows: %v", err)

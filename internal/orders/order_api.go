@@ -24,7 +24,7 @@ func CreateOrder(db *sql.DB) echo.HandlerFunc {
 		}
 
 		if err := c.Bind(&o); err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]string{"error": "unable to parse req body"})
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("unable to parse req body: %v", err)})
 		}
 
 		o.ProductID = ProductID

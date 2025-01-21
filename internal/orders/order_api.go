@@ -1,6 +1,7 @@
 package order
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -27,7 +28,12 @@ func CreateOrder(db *sql.DB) echo.HandlerFunc {
 		}
 
 		o.ProductID = ProductID
-		o.BuyerID = c.Get("user_id").(int) // used context to fetch userID
+		if userID, ok := c.Get("user_id").(int); ok {
+			o.BuyerID = userID
+		} else {
+			// Handle error case
+			return errors.New("user_id not found or invalid type")
+		}
 
 		if o.QuantityInKg <= 0 {
             return c.JSON(http.StatusBadRequest, map[string]string{"error": "quantity must be greater than 0"})

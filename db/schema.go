@@ -46,6 +46,8 @@ func CreateTable() error {
 		aadhar_number VARCHAR(12) UNIQUE NOT NULL,
     	user_type user_type NOT NULL,
 		img TEXT,
+		AadharFrontImg TEXT,
+		AadharBackImg TEXT,
 		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		last_login_at TIMESTAMP

@@ -97,11 +97,12 @@ func CreateUserStore(db *sql.DB, user types.User) (int, error) {
     insertUserQuery := `
     INSERT INTO users (
         first_name, last_name, email, phone_number, aadhar_number,
-        user_type, img, created_at, updated_at, last_login_at
+        user_type, img, created_at, updated_at, last_login_at,
+        aadhar_front_img, aadhar_back_img
     ) VALUES (
         $1, $2, $3, $4, $5,
         CASE WHEN $6 THEN 'farmer'::user_type ELSE 'buyer'::user_type END,
-        $7, $8, $9, $10
+        $7, $8, $9, $10, $11, $12
     )
     RETURNING id;
     `
@@ -118,6 +119,8 @@ func CreateUserStore(db *sql.DB, user types.User) (int, error) {
         user.CreatedAt,
         user.UpdatedAt,
         user.LastLoginAt,
+        user.AadharFrontImg,
+        user.AadharBackImg,
     ).Scan(&newUserID)
     if err != nil {
         return 0, fmt.Errorf("error creating user in userstore: %v", err)

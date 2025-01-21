@@ -41,6 +41,8 @@ type User struct {
 	LastLoginAt  time.Time `json:"last_login_at" db:"last_login_at"`
 	Image        string    `json:"img" db:"img"`
 	UserType     string    `json:"user_type" db:"user_type"`
+	AadharFrontImg string `json:"aadhar_front_img,omitempty" db:"aadhar_front_img"`
+	AadharBackImg string `json:"aadhar_back_img,omitempty" db:"aadhar_back_img"`
 }
 
 type Farmer struct {

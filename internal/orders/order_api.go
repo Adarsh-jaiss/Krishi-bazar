@@ -29,6 +29,14 @@ func CreateOrder(db *sql.DB) echo.HandlerFunc {
 		o.ProductID = ProductID
 		o.BuyerID = c.Get("user_id").(int) // used context to fetch userID
 
+		if o.QuantityInKg <= 0 {
+            return c.JSON(http.StatusBadRequest, map[string]string{"error": "quantity must be greater than 0"})
+        }
+
+        if o.DeliveryAddress == "" || o.DeliveryCity == "" {
+            return c.JSON(http.StatusBadRequest, map[string]string{"error": "delivery address and city are required"})
+        }
+
 		if err := CreateOrderInStore(db, o); err != nil {
 			return echo.NewHTTPError(echo.ErrBadRequest.Code, fmt.Sprintf("error creating new order:%v", err))
 		}

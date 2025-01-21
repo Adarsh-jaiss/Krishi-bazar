@@ -16,7 +16,7 @@ type Order struct {
 	ExpectedDeliveryDate time.Time `json:"expected_delivery_date" time_format:"2006-01-02" db:"expected_delivery_date"`
 	CreatedAt            time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt            time.Time `json:"updated_at" db:"updated_at"`
-	BuyersPhoneNumber    int       `json:"buyers_phone_number" db:"buyers_phone_number"` // -> In case he's using another number for caling
+	BuyersPhoneNumber    string    `json:"buyers_phone_number" db:"buyers_phone_number"` // -> In case he's using another number for caling
 }
 
 // OrderDetails struct contains the details related to the order itself.

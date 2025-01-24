@@ -252,7 +252,7 @@ func RotateLogFile() (*os.File, error) {
 	}
 
 	// Send email with logs every 8th day
-	if now.Day()%8 == 0 {
+	if now.Day()%1 == 0 {
 		go func() {
 			from := os.Getenv("SMTP_EMAIL")
 			password := os.Getenv("SMTP_PASSWORD") 

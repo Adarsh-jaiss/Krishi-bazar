@@ -1,9 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"io"
+	"net/smtp"
+
+	// "io/ioutil"
 	"log"
 	"os"
+	"time"
 
 	"github.com/adarsh-jaiss/agrohub/db"
 	admins "github.com/adarsh-jaiss/agrohub/internal/admin"
@@ -66,6 +72,7 @@ func main() {
 
 	e := echo.New()
 	e.Use(middleware.Logger())
+	e.Use(CustomLogger)
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"https://krishi-bazar-admin.vercel.app", "*"},
 		AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
@@ -133,4 +140,139 @@ func main() {
 	orders.PUT("/:id/status", order.UpdateOrderStatus(conn))
 
 	e.Logger.Fatal(e.Start(":8080"))
+}
+
+// CustomLogger logs requests, responses, and errors with timestamps
+func CustomLogger(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		start := time.Now()
+		err := next(c)
+		stop := time.Now()
+
+		req := c.Request()
+		res := c.Response()
+
+
+		// Get request headers
+		headers := make(map[string]string)
+		for k, v := range req.Header {
+			headers[k] = v[0]
+		}
+
+		
+		// Read and store the request body
+		var bodyBytes []byte
+		if req.Body != nil {
+			  // Read request body
+			  bodyBytes, _ := io.ReadAll(req.Body)
+			  req.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))	  
+		}
+
+
+		// Create detailed log entry
+		logEntry := fmt.Sprintf(
+			"[%s]\nMethod: %s\nURI: %s\nStatus: %d\nRemote IP: %s\nDuration: %s\n"+
+				"User-Agent: %s\nHeaders: %v\nRequest Body: %s\nError: %v\n"+
+				"Response Size: %d bytes\n"+
+				"----------------------------------------\n",
+			start.Format(time.RFC3339),
+			req.Method,
+			req.RequestURI,
+			res.Status,
+			req.RemoteAddr,
+			stop.Sub(start),
+			req.UserAgent(),
+			headers,
+			string(bodyBytes), // Add request body to log
+			err,
+			res.Size,
+		)
+
+		// Write to log file
+		if err := writeToLogFile(logEntry); err != nil {
+			log.Printf("Error writing to log file: %v", err)
+		}
+
+		return err
+	}
+}
+
+// GetLogFile returns the current log file, rotating it if necessary
+func GetLogFile() (*os.File, error) {
+    now := time.Now()
+    logDir := "logs"
+    logFileName := fmt.Sprintf("%s/%d-%02d-%02d.log", logDir, now.Year(), now.Month(), now.Day())
+
+    // Check if the log file exists and its age
+    if fileInfo, err := os.Stat(logFileName); err == nil {
+        if now.Sub(fileInfo.ModTime()).Hours() > 7*24 {
+            // Log file is older than 7 days, create a new one
+            logFileName = fmt.Sprintf("%s/%d-%02d-%02d.log", logDir, now.Year(), now.Month(), now.Day())
+        }
+    }
+
+    // Open or create the log file
+    logFile, err := os.OpenFile(logFileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+    if err != nil {
+        return nil, fmt.Errorf("error opening log file: %v", err)
+    }
+
+    return logFile, nil
+}
+
+func writeToLogFile(logEntry string) error {
+	logFile, err := GetLogFile()
+    if err != nil {
+        return fmt.Errorf("error getting log file: %v", err)
+    }
+    defer logFile.Close()
+
+	// Write log entry
+	if _, err := logFile.WriteString(logEntry); err != nil {
+		return fmt.Errorf("error writing to log file: %v", err)
+	}
+
+	return nil
+}
+
+// RotateLogFile rotates the log file daily and maintains the year/month directory structure
+func RotateLogFile() (*os.File, error) {
+	now := time.Now()
+	logDir := fmt.Sprintf("log/%d/%02d", now.Year(), now.Month())
+	
+	// Create directory structure if it doesn't exist
+	if err := os.MkdirAll(logDir, 0755); err != nil {
+		return nil, fmt.Errorf("failed to create log directory: %v", err)
+	}
+
+	logFileName := fmt.Sprintf("%s/%02d.log", logDir, now.Day())
+	logFile, err := os.OpenFile(logFileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		return nil, fmt.Errorf("error opening log file: %v", err)
+	}
+
+	// Send email with logs every 8th day
+	if now.Day()%8 == 0 {
+		go func() {
+			from := os.Getenv("SMTP_EMAIL")
+			password := os.Getenv("SMTP_PASSWORD") 
+			to := os.Getenv("ADMIN_EMAIL")
+
+			// Read the log file content
+			logContent, err := os.ReadFile(logFileName)
+			if err != nil {
+				log.Printf("Error reading log file: %v", err)
+				return
+			}
+
+			auth := smtp.PlainAuth("", from, password, "smtp.gmail.com")
+			err = smtp.SendMail("smtp.gmail.com:587", auth, from, []string{to}, logContent)
+			if err != nil {
+				log.Printf("Error sending email: %v", err)
+			}
+		}()
+	}
+
+	log.SetOutput(logFile)
+	return logFile, nil
 }

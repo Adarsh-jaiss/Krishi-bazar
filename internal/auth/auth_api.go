@@ -21,6 +21,10 @@ func HandleSignUp() echo.HandlerFunc {
 			return echo.NewHTTPError(echo.ErrBadRequest.Code, "Invalid user data")
 		}
 
+		if len(u.AadharNumber) != 12 {
+			return echo.NewHTTPError(echo.ErrBadRequest.Code, "Invalid Aadhar number. Please check your aadhar number and try again")
+		}
+
 		u.CreatedAt = time.Now()
 		u.UpdatedAt = time.Now()
 		u.LastLoginAt = time.Now()

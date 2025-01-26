@@ -32,6 +32,8 @@ func GetAllProductsFromStore(db *sql.DB) ([]types.Product, error) {
 			products p
 		JOIN 
 			users u ON p.farmer_id = u.id
+		WHERE
+			p.is_verified_by_admin = true
 		ORDER BY 
 			p.created_at DESC;`
 
@@ -70,15 +72,16 @@ func GetAllMushroomAndJariProductsFromStore(db *sql.DB, productType string) ([]t
 		p.farmers_phone_number, p.created_at, p.updated_at,
 		u.first_name AS farmer_first_name, u.last_name AS farmer_last_name
 		FROM products p
-		JOIN users u ON p.farmer_id = u.id`
+		JOIN users u ON p.farmer_id = u.id
+		WHERE p.is_verified_by_admin = true`
 
-	// Add WHERE clause if productType is "jari" or "mushroom"
+	// Add additional type filter if productType is "jari" or "mushroom"
 	switch productType {
 	case "Jari", "Mushroom":
-		q += " WHERE p.type = $1"
+		q += " AND p.type = $1"
 	}
 
-	// Add ORDER BY clause after WHERE
+	// Add ORDER BY clause
 	q += " ORDER BY p.created_at DESC"
 
 	// Execute query with or without parameter
@@ -86,6 +89,8 @@ func GetAllMushroomAndJariProductsFromStore(db *sql.DB, productType string) ([]t
 	var err error
 	if productType == "Jari" || productType == "Mushroom" {
 		rows, err = db.Query(q, productType)
+	} else {
+		rows, err = db.Query(q)
 	}
 	
 	if err != nil {
@@ -141,8 +146,8 @@ func GetProductFromStore(db *sql.DB, ProductID int) (types.Product, error) {
 func GetFarmersProductFromStore(db *sql.DB, FarmerID int) ([]types.Product, error) {
 	q := `
 	SELECT p.id, p.farmer_id, p.name, p.type, p.img, p.quantity_in_kg, 
-	p.rate_per_kg, p.jari_size, p.expected_delivery, 
-	p.farmers_phone_number, p.created_at, p.updated_at,
+	p.rate_per_kg, COALESCE(p.jari_size, ''), p.expected_delivery, 
+	p.farmers_phone_number, p.created_at, p.updated_at, p.is_verified_by_admin,
 	u.first_name AS farmer_first_name, u.last_name AS farmer_last_name
 	FROM 
 		products p
@@ -165,7 +170,7 @@ func GetFarmersProductFromStore(db *sql.DB, FarmerID int) ([]types.Product, erro
 		if err := rows.Scan(
 			&p.ID, &p.FarmerID, &p.Name, &p.Type, &p.Img, &p.Quantity,
 			&p.RatePerKg, &p.JariSize, &p.ExpectedDelivery,
-			&p.FarmersPhoneNumber, &p.CreatedAt, &p.UpdatedAt,
+			&p.FarmersPhoneNumber, &p.CreatedAt, &p.UpdatedAt, &p.IsVerifiedByAdmin,
 			&p.FarmerFirstName, &p.FarmerLastName,
 		); err != nil {
 			return nil, echo.NewHTTPError(echo.ErrInternalServerError.Code, "failed to scan rows: %v", err)
